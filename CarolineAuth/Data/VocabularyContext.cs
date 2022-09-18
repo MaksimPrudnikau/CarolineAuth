@@ -11,7 +11,7 @@ public sealed class VocabularyContext : DbContext
         Database.EnsureCreated();
     }
 
-    public DbSet<Vocabulary>? Vocabularies { get; set; } = default!;
+    public DbSet<Vocabulary> Vocabularies { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

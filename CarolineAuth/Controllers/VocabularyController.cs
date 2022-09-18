@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using CarolineAuth.Data;
+using CarolineAuth.Extensions;
 using CarolineAuth.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,45 +21,104 @@ public class VocabularyController : Controller
     {
         var isExist = TryGetVocabulary(out var vocabulary);
         if (!isExist)
-        {
             return Problem("Entity set 'VocabularyContext.Vocabularies' is null.");
-        }
         
-        return View(vocabulary.Data);
+        return View(vocabulary);
     }
     
-    // GET: Symbol/Create
     public IActionResult Create()
     {
         return View();
     }
-
-    // POST: Symbol/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,English,Japan")] Row row)
+    public async Task<IActionResult> Create([Bind(nameof(Row.English), nameof(Row.Japanese))] Row row)
     {
-        if (ModelState.IsValid)
-        {
-            var isExist = TryGetVocabulary(out var vocabulary);
-            if (!isExist)
-            {
-                return Problem("Entity set 'VocabularyContext.Vocabularies' is null.");
-            }
+        if (!ModelState.IsValid) 
+            return View(row);
+        
+        var isExist = TryGetVocabulary(out var vocabulary);
+        
+        if (!isExist)
+            return Problem("Entity set 'VocabularyContext.Vocabularies' is null.");
 
-            row.Id = vocabulary.Data.Count + 1;
-            vocabulary.Data.Add(row);
-            await context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+        var index = vocabulary.Count == 0 ? 1 : vocabulary.Count + 1;
+        row.Id = index;
+        vocabulary.Add(row);
+        await context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+    
+    public IActionResult Details(int? id)
+    {
+        var isExist = TryGetVocabulary(out var vocabulary);
+        if (!isExist)
+            return Problem("Entity set 'VocabularyContext.Vocabularies' is null.");
+
+
+        if (id == null || !vocabulary.ContainsIndex(id))
+            return NotFound();
+
+        var row = vocabulary.First(row => row.Id == id);
+        return View(row);
+    }
+    
+    public IActionResult Edit(int? id)
+    {
+        var rowExist = TryGetRow(id, out var row);
+        return rowExist
+            ? View(row)
+            : NotFound();
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, [Bind(nameof(Row.English), nameof(Row.Japanese))] Row row)
+    {
+        if (!ModelState.IsValid)
+            return View(row);
+        
+        var vocabularyExist = TryGetVocabulary(out var vocabulary);
+        var rowExist = vocabulary.ContainsIndex(id);
+            
+        if (!vocabularyExist || !rowExist)
+            return NotFound();
+
+        vocabulary[id - 1] = row;
+        vocabulary[id - 1].Id = id;
+        await context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+    
+    public IActionResult Delete(int? id)
+    {
+        var vocabularyExist = TryGetVocabulary(out var vocabulary);
+        if (!vocabularyExist || id is null || !vocabulary.ContainsIndex(id.Value))
+            return NotFound();
+
+        var row = vocabulary.First(row => row.Id == id);
         return View(row);
     }
 
-    private bool TryGetVocabulary(out Vocabulary vocabulary)
+    // POST: Symbol/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        vocabulary = null;
+        var vocabularyExist = TryGetVocabulary(out var vocabulary);
+        if (!vocabularyExist || !vocabulary.ContainsIndex(id))
+            return NotFound();
+
+        vocabulary.RemoveInc(id);
+        
+        await context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+
+    private bool TryGetVocabulary(out IList<Row> vocabulary)
+    {
+        vocabulary = new List<Row>();
         try
         {
             vocabulary = GetVocabulary();
@@ -71,7 +131,7 @@ public class VocabularyController : Controller
         return true;
     }
 
-    private Vocabulary GetVocabulary()
+    private IList<Row> GetVocabulary()
     {
         if (context.Vocabularies is null)
         {
@@ -80,6 +140,19 @@ public class VocabularyController : Controller
         
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var vocabulary = context.Vocabularies.FirstOrDefault(v => v.UserId == userId)!;
-        return vocabulary;
+        return vocabulary.Data;
+    }
+
+    private bool TryGetRow(int? id, out Row? row)
+    {
+        row = null;
+        var vocabularyExist = TryGetVocabulary(out var vocabulary);
+        if (!vocabularyExist || !vocabulary.ContainsIndex(id))
+        {
+            return false;
+        }
+
+        row = vocabulary[id!.Value - 1];
+        return true;
     }
 } 

@@ -12,8 +12,8 @@ public sealed class Vocabulary
     
     public int Id { get; set; }
     public string UserId { get; set; }
-
-    public List<Row> Data { get; set; }
+    
+    public List<Row> Data { get; } = new() ;
 }
 
 public class VocabularyConfiguration : IEntityTypeConfiguration<Vocabulary>

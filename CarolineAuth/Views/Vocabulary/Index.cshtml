@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var values = Model.ToArray();
 }
 
 <h1>Vocabulary</h1>
@@ -14,27 +16,36 @@
     <thead>
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.English)
+            №
+        </th>
+        
+        <th>
+            @nameof(Row.English)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Japan)
+            @nameof(Row.Japanese)
         </th>
         <th></th>
     </tr>
     </thead>
     <tbody>
-    @foreach (var item in Model!) {
+    @foreach(var row in Model)
+    {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.English)
+                 @Html.DisplayFor(modelItem => row.Id)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => row.English)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Japan)
+                @Html.DisplayFor(modelItem => row.Japanese)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <a asp-action="Edit" asp-route-id="@row.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@row.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@row.Id">Delete</a>
             </td>
         </tr>
     }
