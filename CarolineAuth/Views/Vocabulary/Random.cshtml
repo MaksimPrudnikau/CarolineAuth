@@ -1,0 +1,38 @@
+@model RandomRowViewModel
+@{
+    var symbol = Model.Row;
+    Tuple<string, string> card = Model.SearchOption switch{
+        SearchOptions.English => new(symbol.English, symbol.Japanese),
+        SearchOptions.Japanese => new(symbol.Japanese, symbol.English),
+        _ => throw new ArgumentOutOfRangeException()
+        };
+    var optionsList = Enum.GetValues(typeof(SearchOptions))
+        .Cast<SearchOptions>()
+        .Select(v => new SelectListItem {Text = v.ToString(), Value = ((int)v).ToString() })
+        .ToList();
+
+    const double maximumFontSize = 1d;
+    const double minimumFontSize = 0.4;
+    const double decreaseStep = 0.2;
+    var fontSize = maximumFontSize;
+    for (var i = 0; i < card.Item1.Length && fontSize > minimumFontSize; ++i)
+    {
+        fontSize -= decreaseStep;
+    }
+}
+<div class="text-center">
+    <h1 class="display-4 test">✨Go little rockstar✨</h1>
+    <form class="form" method="post" asp-controller="Vocabulary" asp-action="GetRandomSymbol" style="margin-bottom: 0.3in;">
+        @Html.DropDownListFor(m => m.SearchOption, optionsList)
+        <button class="btn btn-secondary" type="submit">Random</button>
+    </form>
+
+    <div id="row" class="card align-content-center">
+        <div class="japanese" style="font-size: @(fontSize)in">
+            @card.Item1
+        </div>
+        <div id="english" class="english" style="font-size: @(fontSize)in">
+            @card.Item2
+        </div>
+    </div>
+</div>

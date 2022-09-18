@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Caroline.Extensions;
 using CarolineAuth.Data;
 using CarolineAuth.Extensions;
 using CarolineAuth.Models;
@@ -114,6 +115,29 @@ public class VocabularyController : Controller
         
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
+    }
+    
+    [HttpPost]
+    public IActionResult GetRandomSymbol(RandomRowViewModel randomRowViewModel)
+    {
+        var vocabularyExist = TryGetVocabulary(out var vocabulary);
+        if (!vocabularyExist)
+            return NotFound();
+        
+        var random = new Random();
+        var randomIndex = random.Next(0, vocabulary.Count);
+        var randoRow = vocabulary[randomIndex];
+        var symbolViewModel = new RandomRowViewModel(){Row = randoRow, SearchOption = randomRowViewModel.SearchOption};
+        TempData.Put("randomRowViewModel", symbolViewModel);
+        return RedirectToAction("Random");
+    }
+
+    public IActionResult Random()
+    {
+        var randomRowViewModel = TempData.Get<RandomRowViewModel>("randomRowViewModel");
+        return randomRowViewModel is null 
+            ? RedirectToAction(nameof(Index), "Home") 
+            : View(randomRowViewModel);
     }
 
     private bool TryGetVocabulary(out IList<Row> vocabulary)

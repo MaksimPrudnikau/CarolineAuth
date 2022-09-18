@@ -1,6 +1,4 @@
 ﻿
-using Microsoft.EntityFrameworkCore;
-
 namespace CarolineAuth.Models;
 
 public sealed class Row

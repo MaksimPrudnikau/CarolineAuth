@@ -1,7 +1,15 @@
-﻿@{
+﻿@model RandomRowViewModel
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+    <h1 class="display-4 test">✨Go little rockstar✨</h1>
+    <form method="post" asp-controller="Vocabulary" asp-action="GetRandomSymbol">
+        <select asp-for="SearchOption">
+            <option selected="selected">Japanese</option>
+            <option>English</option>
+        </select>
+        <button class="btn btn-secondary" type="submit">Random</button>
+    </form>
 </div>
