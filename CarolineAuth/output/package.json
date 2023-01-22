@@ -1,0 +1,6 @@
+{
+    "scripts": {
+        "build": "dotnet CarolineAuth.dll",
+        "watch": "dotnet CarolineAuth.dll"
+    }
+}
